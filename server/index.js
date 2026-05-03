@@ -173,6 +173,9 @@ app.get('/api/notes', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/test', (req, res) => {
+  res.send('working')
+})
 // Delete Note
 app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
     try {
