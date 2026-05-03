@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 50000;
+const PORT = 5000;
 const JWT_SECRET = 'your_super_secret_key_123';
 
 // Connect to Redis
