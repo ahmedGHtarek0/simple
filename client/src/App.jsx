@@ -3,6 +3,8 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
+import Notes from './pages/Notes';
+import AddNote from './pages/AddNote';
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('token');
@@ -18,7 +20,15 @@ function App() {
             path="/profile" 
             element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
           />
-          <Route path="/" element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />} />
+          <Route 
+            path="/notes" 
+            element={isAuthenticated ? <Notes /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/add-note" 
+            element={isAuthenticated ? <AddNote /> : <Navigate to="/login" />} 
+          />
+          <Route path="/" element={<Navigate to={isAuthenticated ? "/notes" : "/login"} />} />
         </Routes>
       </main>
     </Router>

@@ -20,6 +20,7 @@ const Navbar = () => {
             <div className="nav-links">
                 {token ? (
                     <>
+                        <Link to="/notes" className="nav-link">Notes</Link>
                         <Link to="/profile" className="nav-link">Profile</Link>
                         <button 
                             onClick={handleLogout} 

@@ -120,6 +120,82 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
     }
 });
 
+// --- Notes CRUD Routes ---
+
+// Create Note
+app.post('/api/notes', authMiddleware, async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const noteId = Date.now().toString();
+        const username = req.user.username;
+
+        const note = {
+            id: noteId,
+            title,
+            content,
+            username,
+            createdAt: new Date().toISOString()
+        };
+
+        // Store note in a hash
+        await client.hSet(`note:${noteId}`, note);
+        // Add note ID to the user's set of notes
+        await client.sAdd(`user:${username}:notes`, noteId);
+
+        res.status(201).json(note);
+    } catch (error) {
+        console.error('Create note error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get All Notes for User
+app.get('/api/notes', authMiddleware, async (req, res) => {
+    try {
+        const username = req.user.username;
+        const noteIds = await client.sMembers(`user:${username}:notes`);
+        
+        const notes = [];
+        for (const id of noteIds) {
+            const note = await client.hGetAll(`note:${id}`);
+            if (note && note.id) {
+                notes.push(note);
+            }
+        }
+
+        // Sort by creation date (newest first)
+        notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        res.json(notes);
+    } catch (error) {
+        console.error('Get notes error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete Note
+app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
+    try {
+        const noteId = req.params.id;
+        const username = req.user.username;
+
+        // Check if note belongs to user
+        const isMember = await client.sIsMember(`user:${username}:notes`, noteId);
+        if (!isMember) {
+            return res.status(403).json({ message: 'Not authorized to delete this note' });
+        }
+
+        // Delete from user's set and the note hash
+        await client.sRem(`user:${username}:notes`, noteId);
+        await client.del(`note:${noteId}`);
+
+        res.json({ message: 'Note deleted successfully' });
+    } catch (error) {
+        console.error('Delete note error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
